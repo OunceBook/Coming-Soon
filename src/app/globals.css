@@ -1,0 +1,132 @@
+@import "tailwindcss";
+
+:root {
+  --paper: #000000;
+  --paper-soft: #000000;
+  --ink: #ffffff;
+  --secondary: rgba(255, 255, 255, 0.7);
+  --divider: rgba(255, 255, 255, 0.16);
+  --accent: #ffffff;
+  --accent-strong: rgba(255, 255, 255, 0.82);
+  --success: #ffffff;
+  --danger: #ffffff;
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-paper-soft: var(--paper-soft);
+  --color-ink: var(--ink);
+  --color-secondary: var(--secondary);
+  --color-divider: var(--divider);
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-success: var(--success);
+  --color-danger: var(--danger);
+  --font-sans: var(--font-manrope);
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  min-height: 100%;
+}
+
+.font-display {
+  font-family: var(--font-manrope), "Segoe UI", sans-serif;
+}
+
+.font-ui {
+  font-family: var(--font-manrope), "Segoe UI", sans-serif;
+}
+
+.ambient {
+  background: #000000;
+}
+
+.tracking-caps {
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.chip {
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 999px;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 0.48rem 0.85rem;
+}
+
+.link-soft {
+  color: var(--secondary);
+  transition: color 180ms ease, opacity 180ms ease;
+}
+
+.link-soft:hover {
+  color: var(--ink);
+}
+
+.panel {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 1rem;
+}
+
+.nav-tab {
+  border-bottom: 2px solid transparent;
+  color: rgba(255, 255, 255, 0.72);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  height: 4.5rem;
+  padding: 0 0.25rem;
+  font-size: 0.98rem;
+  font-weight: 600;
+  transition: color 180ms ease, border-color 180ms ease;
+}
+
+.nav-tab:hover {
+  color: var(--ink);
+}
+
+.nav-tab-active {
+  color: var(--ink);
+  border-bottom-color: rgba(255, 255, 255, 0.78);
+}
+
+.progress-rail {
+  height: 0.45rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: #ffffff;
+}
+
+.form-ring:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.55);
+  outline-offset: 1px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .reveal {
+    animation: reveal-up 620ms cubic-bezier(0.34, 1.38, 0.64, 1) both;
+  }
+}
+
+@keyframes reveal-up {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
