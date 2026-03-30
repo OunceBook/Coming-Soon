@@ -2,20 +2,29 @@
 
 import Script from "next/script";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { AlertCircle, CheckCircle2, Mail, Send, ShieldCheck } from "lucide-react";
+import { AlertCircle, Info, Mail, Send, ShieldCheck } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 type ApiResponse = {
   success: boolean;
+  status?:
+    | "verification_sent"
+    | "verification_resent"
+    | "verification_pending"
+    | "already_verified"
+    | "rate_limited"
+    | "invalid_request"
+    | "invalid_email"
+    | "disposable_email"
+    | "captcha_failed"
+    | "server_error";
   message: string;
-  status?: "joined" | "already_joined";
-};
-
-type FormState = {
-  type: "idle" | "success" | "error";
-  message: string;
+  canResend?: boolean;
+  retryAfterSeconds?: number;
+  alreadyRegistered?: boolean;
+  verificationRequired?: boolean;
 };
 
 type TurnstileWidgetId = string | number;
@@ -27,6 +36,13 @@ type TurnstileRenderOptions = {
   callback?: (token: string) => void;
   "error-callback"?: () => void;
   "expired-callback"?: () => void;
+};
+
+type StatusModalState = {
+  open: boolean;
+  title: string;
+  lines: string[];
+  tone: "success" | "info" | "error";
 };
 
 declare global {
@@ -41,6 +57,125 @@ declare global {
   }
 }
 
+function formatWaitTime(totalSeconds: number) {
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+
+  if (minutes === 0) {
+    return `${seconds}s`;
+  }
+
+  if (seconds === 0) {
+    return `${minutes}m`;
+  }
+
+  return `${minutes}m ${seconds}s`;
+}
+
+function toStatusModal(data: ApiResponse, responseOk: boolean): StatusModalState {
+  const wait = data.retryAfterSeconds
+    ? formatWaitTime(data.retryAfterSeconds)
+    : null;
+
+  if (responseOk && data.status === "verification_sent") {
+    return {
+      open: true,
+      tone: "success",
+      title: "Verification email sent",
+      lines: [
+        "We sent a verification link to your inbox.",
+        "Open the email and click verify to secure your waitlist spot.",
+        wait ? `You can request a new verification email in about ${wait}.` : "",
+      ].filter(Boolean),
+    };
+  }
+
+  if (responseOk && data.status === "verification_resent") {
+    return {
+      open: true,
+      tone: "success",
+      title: "Verification email resent",
+      lines: [
+        "A new verification link has been sent.",
+        "Use the latest email in your inbox.",
+        wait ? `You can request another resend in about ${wait}.` : "",
+      ].filter(Boolean),
+    };
+  }
+
+  if (responseOk && data.status === "verification_pending") {
+    return {
+      open: true,
+      tone: "info",
+      title: "Verification already pending",
+      lines: [
+        "This email is already registered and waiting for verification.",
+        "Please check your inbox (or spam folder) for the verification link.",
+        wait ? `You can request a resend in about ${wait}.` : "",
+      ].filter(Boolean),
+    };
+  }
+
+  if (responseOk && data.status === "already_verified") {
+    return {
+      open: true,
+      tone: "info",
+      title: "Already on the waitlist",
+      lines: [
+        "This email is already verified and in the queue.",
+        "No further action is required.",
+      ],
+    };
+  }
+
+  if (data.status === "rate_limited") {
+    return {
+      open: true,
+      tone: "error",
+      title: "Too many attempts",
+      lines: [
+        wait
+          ? `Please wait ${wait} before trying again.`
+          : "Please wait before trying again.",
+      ],
+    };
+  }
+
+  if (data.status === "captcha_failed") {
+    return {
+      open: true,
+      tone: "error",
+      title: "Captcha verification failed",
+      lines: ["Please retry and complete the captcha challenge."],
+    };
+  }
+
+  if (data.status === "disposable_email") {
+    return {
+      open: true,
+      tone: "error",
+      title: "Disposable email not allowed",
+      lines: ["Use a permanent email address to join the waitlist."],
+    };
+  }
+
+  if (data.status === "invalid_email") {
+    return {
+      open: true,
+      tone: "error",
+      title: "Invalid email",
+      lines: ["Please enter a valid email address and try again."],
+    };
+  }
+
+  return {
+    open: true,
+    tone: responseOk ? "info" : "error",
+    title: responseOk ? "Waitlist update" : "Something went wrong",
+    lines: [data.message || "Please try again in a moment."],
+  };
+}
+
 export function WaitlistForm() {
   const formRef = useRef<HTMLFormElement>(null);
   const captchaContainerRef = useRef<HTMLDivElement>(null);
@@ -51,9 +186,11 @@ export function WaitlistForm() {
   const [submitting, setSubmitting] = useState(false);
   const [captchaModalOpen, setCaptchaModalOpen] = useState(false);
   const [captchaScriptLoaded, setCaptchaScriptLoaded] = useState(false);
-  const [formState, setFormState] = useState<FormState>({
-    type: "idle",
-    message: "",
+  const [statusModal, setStatusModal] = useState<StatusModalState>({
+    open: false,
+    title: "",
+    lines: [],
+    tone: "info",
   });
 
   const metadata = useMemo(
@@ -81,10 +218,27 @@ export function WaitlistForm() {
     metadata.referrer = document.referrer;
   }, [metadata]);
 
+  const closeCaptchaModal = useCallback(() => {
+    setCaptchaModalOpen(false);
+
+    if (captchaWidgetIdRef.current !== null && window.turnstile) {
+      try {
+        window.turnstile.reset(captchaWidgetIdRef.current);
+      } catch {
+        // noop
+      }
+    }
+
+    captchaWidgetIdRef.current = null;
+
+    if (captchaContainerRef.current) {
+      captchaContainerRef.current.innerHTML = "";
+    }
+  }, []);
+
   const submitWaitlist = useCallback(
     async (captchaToken?: string) => {
       setSubmitting(true);
-      setFormState({ type: "idle", message: "" });
 
       try {
         const response = await fetch("/api/waitlist", {
@@ -102,22 +256,18 @@ export function WaitlistForm() {
         });
 
         const data = (await response.json()) as ApiResponse;
+        setStatusModal(toStatusModal(data, response.ok));
 
-        if (!response.ok || !data.success) {
-          setFormState({
-            type: "error",
-            message: data.message || "Could not save your spot. Please retry.",
-          });
-          return;
+        if (response.ok && data.success) {
+          setEmail("");
+          setHoneypot("");
         }
-
-        setFormState({ type: "success", message: data.message });
-        setEmail("");
-        setHoneypot("");
       } catch {
-        setFormState({
-          type: "error",
-          message: "Network issue. Please try again in a moment.",
+        setStatusModal({
+          open: true,
+          tone: "error",
+          title: "Network issue",
+          lines: ["We could not reach the server. Please try again in a moment."],
         });
       } finally {
         setSubmitting(false);
@@ -138,42 +288,42 @@ export function WaitlistForm() {
       return;
     }
 
-    if (captchaWidgetIdRef.current === null) {
-      captchaWidgetIdRef.current = turnstile.render(container, {
-        sitekey: turnstileSiteKey,
-        theme: "dark",
-        size: "flexible",
-        callback: (token: string) => {
-          setCaptchaModalOpen(false);
-          void submitWaitlist(token);
-        },
-        "error-callback": () => {
-          setCaptchaModalOpen(false);
-          setFormState({
-            type: "error",
-            message: "Captcha failed. Please try again.",
-          });
-        },
-        "expired-callback": () => {
-          setFormState({
-            type: "error",
-            message: "Captcha expired. Please verify again.",
-          });
-        },
-      });
-      return;
-    }
+    container.innerHTML = "";
+    captchaWidgetIdRef.current = null;
 
-    turnstile.reset(captchaWidgetIdRef.current);
-  }, [captchaModalOpen, captchaScriptLoaded, submitWaitlist, turnstileSiteKey]);
-
-  function closeCaptchaModal() {
-    setCaptchaModalOpen(false);
-
-    if (captchaWidgetIdRef.current !== null && window.turnstile) {
-      window.turnstile.reset(captchaWidgetIdRef.current);
-    }
-  }
+    captchaWidgetIdRef.current = turnstile.render(container, {
+      sitekey: turnstileSiteKey,
+      theme: "dark",
+      size: "flexible",
+      callback: (token: string) => {
+        closeCaptchaModal();
+        void submitWaitlist(token);
+      },
+      "error-callback": () => {
+        closeCaptchaModal();
+        setStatusModal({
+          open: true,
+          tone: "error",
+          title: "Captcha failed",
+          lines: ["Please retry the captcha challenge."],
+        });
+      },
+      "expired-callback": () => {
+        setStatusModal({
+          open: true,
+          tone: "error",
+          title: "Captcha expired",
+          lines: ["The captcha expired before submission. Please try again."],
+        });
+      },
+    });
+  }, [
+    captchaModalOpen,
+    captchaScriptLoaded,
+    closeCaptchaModal,
+    submitWaitlist,
+    turnstileSiteKey,
+  ]);
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -186,14 +336,15 @@ export function WaitlistForm() {
 
     if (turnstileSiteKey) {
       if (!captchaScriptLoaded) {
-        setFormState({
-          type: "error",
-          message: "Captcha is loading. Please try again in a second.",
+        setStatusModal({
+          open: true,
+          tone: "info",
+          title: "Captcha loading",
+          lines: ["Captcha is still loading. Please click again in a second."],
         });
         return;
       }
 
-      setFormState({ type: "idle", message: "" });
       setCaptchaModalOpen(true);
       return;
     }
@@ -262,27 +413,11 @@ export function WaitlistForm() {
           <ShieldCheck className="h-4 w-4" aria-hidden="true" />
           Verification required. No spam. Product updates only.
         </p>
-
-        <p
-          aria-live="polite"
-          className={
-            formState.type === "idle"
-              ? "sr-only"
-              : "flex items-start gap-2 rounded-lg border border-divider bg-white/[0.05] px-3 py-2 text-sm text-ink"
-          }
-        >
-          {formState.type === "success" ? (
-            <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-          ) : (
-            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-          )}
-          <span>{formState.message}</span>
-        </p>
       </form>
 
       {captchaModalOpen ? (
         <div
-          className="fixed inset-0 z-50 grid place-items-center bg-black/80 px-4"
+          className="fixed inset-0 z-50 grid place-items-center bg-black px-4"
           role="dialog"
           aria-modal="true"
           aria-labelledby="captcha-modal-title"
@@ -302,6 +437,53 @@ export function WaitlistForm() {
             <div className="mt-4 flex justify-end">
               <Button type="button" variant="outline" size="sm" onClick={closeCaptchaModal}>
                 Cancel
+              </Button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {statusModal.open ? (
+        <div
+          className="fixed inset-0 z-50 grid place-items-center bg-black px-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="status-modal-title"
+        >
+          <div className="panel w-full max-w-lg p-5 sm:p-6">
+            <div className="flex items-start gap-3">
+              {statusModal.tone === "success" ? (
+                <ShieldCheck className="mt-0.5 h-5 w-5 text-ink" aria-hidden="true" />
+              ) : statusModal.tone === "error" ? (
+                <AlertCircle className="mt-0.5 h-5 w-5 text-ink" aria-hidden="true" />
+              ) : (
+                <Info className="mt-0.5 h-5 w-5 text-ink" aria-hidden="true" />
+              )}
+              <div>
+                <h3 id="status-modal-title" className="text-lg font-semibold text-ink">
+                  {statusModal.title}
+                </h3>
+                <div className="mt-2 space-y-2 text-sm leading-relaxed text-secondary">
+                  {statusModal.lines.map((line) => (
+                    <p key={line}>{line}</p>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 flex justify-end">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  setStatusModal((previous) => ({
+                    ...previous,
+                    open: false,
+                  }))
+                }
+              >
+                Close
               </Button>
             </div>
           </div>

@@ -45,6 +45,10 @@ function buildVerificationUrl(token: string) {
   return `${siteUrl.replace(/\/$/, "")}/verify?token=${encodeURIComponent(token)}`;
 }
 
+function secondsUntil(dateMs: number) {
+  return Math.max(1, Math.ceil((dateMs - Date.now()) / 1000));
+}
+
 export async function POST(request: NextRequest) {
   let payload: unknown;
 
@@ -52,7 +56,11 @@ export async function POST(request: NextRequest) {
     payload = await request.json();
   } catch {
     return NextResponse.json(
-      { success: false, message: "Invalid request body." },
+      {
+        success: false,
+        status: "invalid_request",
+        message: "Invalid request body.",
+      },
       { status: 400 },
     );
   }
@@ -61,7 +69,11 @@ export async function POST(request: NextRequest) {
 
   if (!parsed.success) {
     return NextResponse.json(
-      { success: false, message: "Please provide a valid email." },
+      {
+        success: false,
+        status: "invalid_email",
+        message: "Please provide a valid email.",
+      },
       { status: 400 },
     );
   }
@@ -70,6 +82,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: false,
+        status: "disposable_email",
         message: "Disposable email addresses are not supported.",
       },
       { status: 400 },
@@ -83,6 +96,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: false,
+        status: "captcha_failed",
         message: "Captcha verification failed. Please try again.",
       },
       { status: 400 },
@@ -92,8 +106,12 @@ export async function POST(request: NextRequest) {
   if (parsed.data.honeypot) {
     return NextResponse.json({
       success: true,
-      status: "joined",
-      message: "Thanks. You are on the list.",
+      status: "verification_sent",
+      message: "Check your inbox and verify your email to confirm your spot.",
+      verificationRequired: true,
+      alreadyRegistered: false,
+      canResend: false,
+      retryAfterSeconds: Math.ceil(RESEND_COOLDOWN_MS / 1000),
     });
   }
 
@@ -104,7 +122,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: false,
+        status: "rate_limited",
         message: "Too many attempts. Please try again shortly.",
+        retryAfterSeconds: Math.ceil(WINDOW_MS / 1000),
       },
       { status: 429 },
     );
@@ -117,8 +137,11 @@ export async function POST(request: NextRequest) {
     if (existing?.status === "verified" || existing?.verifiedAt) {
       return NextResponse.json({
         success: true,
-        status: "already_joined",
+        status: "already_verified",
         message: "This email is already verified on the waitlist.",
+        verificationRequired: false,
+        alreadyRegistered: true,
+        canResend: false,
       });
     }
 
@@ -126,10 +149,17 @@ export async function POST(request: NextRequest) {
       existing?.verificationRequestedAt &&
       Date.now() - new Date(existing.verificationRequestedAt).getTime() < RESEND_COOLDOWN_MS
     ) {
+      const nextAllowedAt =
+        new Date(existing.verificationRequestedAt).getTime() + RESEND_COOLDOWN_MS;
+
       return NextResponse.json({
         success: true,
-        status: "joined",
-        message: "Verification email already sent. Check your inbox.",
+        status: "verification_pending",
+        message: "Verification email already sent.",
+        verificationRequired: true,
+        alreadyRegistered: true,
+        canResend: false,
+        retryAfterSeconds: secondsUntil(nextAllowedAt),
       });
     }
 
@@ -137,6 +167,8 @@ export async function POST(request: NextRequest) {
     const verificationToken = createVerificationToken();
     const verificationTokenHash = hashVerificationToken(verificationToken);
     const verificationUrl = buildVerificationUrl(verificationToken);
+
+    const wasExisting = Boolean(existing);
 
     if (!existing) {
       await collection.insertOne({
@@ -184,14 +216,19 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      status: "joined",
+      status: wasExisting ? "verification_resent" : "verification_sent",
       message: "Check your inbox and verify your email to confirm your spot.",
+      verificationRequired: true,
+      alreadyRegistered: wasExisting,
+      canResend: false,
+      retryAfterSeconds: Math.ceil(RESEND_COOLDOWN_MS / 1000),
     });
   } catch (error) {
     console.error("Waitlist signup failed", error);
     return NextResponse.json(
       {
         success: false,
+        status: "server_error",
         message: "Something went wrong. Please try again in a moment.",
       },
       { status: 500 },
