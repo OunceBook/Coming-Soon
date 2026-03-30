@@ -3,13 +3,13 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Privacy Policy",
-  description: "Privacy notice for the OunceBook waitlist.",
+  description: "Privacy notice for the OunceBook waitlist and verification flow.",
   alternates: {
     canonical: "/privacy",
   },
   openGraph: {
     title: "Privacy Policy | OunceBook",
-    description: "Privacy notice for the OunceBook waitlist.",
+    description: "Privacy notice for the OunceBook waitlist and verification flow.",
     url: "/privacy",
     images: [
       {
@@ -23,7 +23,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Privacy Policy | OunceBook",
-    description: "Privacy notice for the OunceBook waitlist.",
+    description: "Privacy notice for the OunceBook waitlist and verification flow.",
     images: ["/screenshot-ouncebook.png"],
   },
 };
@@ -42,8 +42,27 @@ export default function PrivacyPage() {
         <section className="space-y-2">
           <h2 className="font-display text-2xl text-ink">What we collect</h2>
           <p>
-            When you join the waitlist, we collect your email plus limited
-            campaign metadata such as UTM parameters and referring page.
+            When you join the waitlist, we store your email and only the
+            verification fields needed to operate the waitlist:
+            created-at time, verification request time, verification completion
+            time, and a hashed one-time verification token while verification is pending.
+          </p>
+        </section>
+
+        <section className="space-y-2">
+          <h2 className="font-display text-2xl text-ink">What we do not store</h2>
+          <p>
+            We do not persist UTM campaign parameters, referrer URLs, or raw IP addresses
+            in the waitlist database.
+          </p>
+        </section>
+
+        <section className="space-y-2">
+          <h2 className="font-display text-2xl text-ink">Security and abuse prevention</h2>
+          <p>
+            We use CAPTCHA verification and short-window request throttling to reduce abuse.
+            Some anti-abuse checks may process request metadata temporarily in runtime memory,
+            but those values are not written to the waitlist records.
           </p>
         </section>
 

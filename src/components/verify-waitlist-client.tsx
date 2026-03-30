@@ -90,7 +90,7 @@ export function VerifyWaitlistClient() {
   return (
     <section className="panel w-full p-6 sm:p-8">
       <div className="flex items-start gap-3">
-        <span className="mt-0.5 grid h-10 w-10 place-content-center rounded-full border border-divider bg-white/[0.04]">
+        <span className="mt-0.5 grid h-10 w-10 place-content-center rounded-full border border-divider bg-white/4">
           {state.loading ? (
             <LoaderCircle className="h-5 w-5 animate-spin text-ink" aria-hidden="true" />
           ) : state.success ? (
@@ -106,7 +106,7 @@ export function VerifyWaitlistClient() {
         </div>
       </div>
 
-      <div className="mt-4 rounded-lg border border-divider bg-white/[0.02] p-4">
+      <div className="mt-4 rounded-lg border border-divider bg-white/2 p-4">
         <ul className="space-y-2 text-sm leading-relaxed text-secondary sm:text-base">
           <li className="flex items-start gap-2">
             <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-ink/80" aria-hidden="true" />
@@ -119,7 +119,7 @@ export function VerifyWaitlistClient() {
         </ul>
       </div>
 
-      <div className="mt-4 flex items-center justify-between gap-3 rounded-lg border border-divider bg-white/[0.02] px-3 py-2 text-xs text-secondary">
+      <div className="mt-4 flex items-center justify-between gap-3 rounded-lg border border-divider bg-white/2 px-3 py-2 text-xs text-secondary">
         <span>Need help?</span>
         <a className="link-soft" href="mailto:hello@ouncebook.com">
           hello@ouncebook.com

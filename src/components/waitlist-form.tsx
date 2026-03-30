@@ -1,7 +1,7 @@
 "use client";
 
 import Script from "next/script";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   AlertCircle,
   Info,
@@ -25,6 +25,7 @@ type ApiResponse = {
     | "rate_limited"
     | "invalid_request"
     | "invalid_email"
+    | "invalid_tracking"
     | "disposable_email"
     | "captcha_failed"
     | "server_error";
@@ -176,6 +177,18 @@ function toStatusModal(data: ApiResponse, responseOk: boolean): StatusModalState
     };
   }
 
+  if (data.status === "invalid_tracking") {
+    return {
+      open: true,
+      tone: "error",
+      title: "Invalid tracking parameters",
+      lines: [
+        "Your URL tracking parameters look unsafe or malformed.",
+        "Please retry using a clean campaign link.",
+      ],
+    };
+  }
+
   return {
     open: true,
     tone: responseOk ? "info" : "error",
@@ -201,30 +214,7 @@ export function WaitlistForm() {
     tone: "info",
   });
 
-  const metadata = useMemo(
-    () => ({
-      utmSource: "",
-      utmMedium: "",
-      utmCampaign: "",
-      utmTerm: "",
-      utmContent: "",
-      referrer: "",
-    }),
-    [],
-  );
-
   const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-
-    metadata.utmSource = params.get("utm_source") ?? "";
-    metadata.utmMedium = params.get("utm_medium") ?? "";
-    metadata.utmCampaign = params.get("utm_campaign") ?? "";
-    metadata.utmTerm = params.get("utm_term") ?? "";
-    metadata.utmContent = params.get("utm_content") ?? "";
-    metadata.referrer = document.referrer;
-  }, [metadata]);
 
   const closeCaptchaModal = useCallback(() => {
     setCaptchaModalOpen(false);
@@ -258,8 +248,6 @@ export function WaitlistForm() {
             email,
             honeypot,
             captchaToken,
-            consentTimestamp: new Date().toISOString(),
-            ...metadata,
           }),
         });
 
@@ -281,7 +269,7 @@ export function WaitlistForm() {
         setSubmitting(false);
       }
     },
-    [email, honeypot, metadata],
+    [email, honeypot],
   );
 
   useEffect(() => {
@@ -433,7 +421,7 @@ export function WaitlistForm() {
           <div className="panel w-full max-w-md p-5 sm:p-6">
             <div className="flex items-start justify-between gap-4">
               <div className="flex items-center gap-3">
-                <span className="grid h-10 w-10 place-content-center rounded-full border border-divider bg-white/[0.04]">
+                <span className="grid h-10 w-10 place-content-center rounded-full border border-divider bg-white/4">
                   <ShieldCheck className="h-5 w-5 text-ink" aria-hidden="true" />
                 </span>
                 <div>
@@ -456,14 +444,14 @@ export function WaitlistForm() {
               </Button>
             </div>
 
-            <div className="mt-4 rounded-lg border border-divider bg-white/[0.03] p-3">
+            <div className="mt-4 rounded-lg border border-divider bg-white/3 p-3">
               <p className="mb-3 text-sm text-secondary">
                 Complete the captcha to submit your waitlist request.
               </p>
               <div ref={captchaContainerRef} />
             </div>
 
-            <div className="mt-4 rounded-lg border border-divider bg-white/[0.02] px-3 py-2 text-xs text-secondary">
+            <div className="mt-4 rounded-lg border border-divider bg-white/2 px-3 py-2 text-xs text-secondary">
               This modal closes automatically after successful verification.
             </div>
 
@@ -486,7 +474,7 @@ export function WaitlistForm() {
           <div className="panel w-full max-w-lg p-5 sm:p-6">
             <div className="flex items-start justify-between gap-4">
               <div className="flex items-start gap-3">
-                <span className="mt-0.5 grid h-10 w-10 place-content-center rounded-full border border-divider bg-white/[0.04]">
+                <span className="mt-0.5 grid h-10 w-10 place-content-center rounded-full border border-divider bg-white/4">
                   {statusModal.tone === "success" ? (
                     <ShieldCheck className="h-5 w-5 text-ink" aria-hidden="true" />
                   ) : statusModal.tone === "error" ? (
@@ -523,7 +511,7 @@ export function WaitlistForm() {
               </Button>
             </div>
 
-            <div className="mt-4 rounded-lg border border-divider bg-white/[0.02] p-4">
+            <div className="mt-4 rounded-lg border border-divider bg-white/2 p-4">
               <ul className="space-y-2 text-sm leading-relaxed text-secondary">
                 {statusModal.lines.map((line) => (
                   <li key={line} className="flex items-start gap-2">
@@ -534,7 +522,7 @@ export function WaitlistForm() {
               </ul>
             </div>
 
-            <div className="mt-4 flex items-center justify-between gap-3 rounded-lg border border-divider bg-white/[0.02] px-3 py-2 text-xs text-secondary">
+            <div className="mt-4 flex items-center justify-between gap-3 rounded-lg border border-divider bg-white/2 px-3 py-2 text-xs text-secondary">
               <span>Need help?</span>
               <a className="link-soft" href="mailto:hello@ouncebook.com">
                 hello@ouncebook.com

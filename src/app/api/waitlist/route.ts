@@ -68,11 +68,31 @@ export async function POST(request: NextRequest) {
   const parsed = waitlistPayloadSchema.safeParse(payload);
 
   if (!parsed.success) {
+    const hasEmailIssue = parsed.error.issues.some((issue) => issue.path[0] === "email");
+    const hasTrackingIssue = parsed.error.issues.some((issue) => {
+      const path = issue.path[0];
+      return (
+        path === "utmSource" ||
+        path === "utmMedium" ||
+        path === "utmCampaign" ||
+        path === "utmTerm" ||
+        path === "utmContent"
+      );
+    });
+
     return NextResponse.json(
       {
         success: false,
-        status: "invalid_email",
-        message: "Please provide a valid email.",
+        status: hasEmailIssue
+          ? "invalid_email"
+          : hasTrackingIssue
+            ? "invalid_tracking"
+            : "invalid_request",
+        message: hasEmailIssue
+          ? "Please provide a valid email."
+          : hasTrackingIssue
+            ? "Tracking parameters are invalid."
+            : "Invalid request body.",
       },
       { status: 400 },
     );
@@ -174,21 +194,9 @@ export async function POST(request: NextRequest) {
       await collection.insertOne({
         email: parsed.data.email,
         status: "pending",
-        source: "coming-soon",
-        utm: {
-          source: parsed.data.utmSource,
-          medium: parsed.data.utmMedium,
-          campaign: parsed.data.utmCampaign,
-          term: parsed.data.utmTerm,
-          content: parsed.data.utmContent,
-        },
-        referrer: parsed.data.referrer ?? null,
-        consentedAt: parsed.data.consentTimestamp,
-        ipHash,
         createdAt: now,
         verificationTokenHash,
         verificationRequestedAt: now,
-        verificationSentCount: 1,
         verifiedAt: null,
       });
     } else {
@@ -199,11 +207,6 @@ export async function POST(request: NextRequest) {
             status: "pending",
             verificationTokenHash,
             verificationRequestedAt: now,
-            consentedAt: parsed.data.consentTimestamp,
-            ipHash,
-          },
-          $inc: {
-            verificationSentCount: 1,
           },
         },
       );

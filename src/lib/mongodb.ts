@@ -4,21 +4,9 @@ import { Collection, MongoClient } from "mongodb";
 type WaitlistDocument = {
   email: string;
   status: "pending" | "verified";
-  source: string;
-  utm: {
-    source?: string;
-    medium?: string;
-    campaign?: string;
-    term?: string;
-    content?: string;
-  };
-  referrer: string | null;
-  consentedAt: Date;
-  ipHash: string;
   createdAt: Date;
   verificationTokenHash: string | null;
   verificationRequestedAt: Date | null;
-  verificationSentCount: number;
   verifiedAt: Date | null;
 };
 
@@ -73,7 +61,6 @@ async function ensureWaitlistIndexes(collection: Collection<WaitlistDocument>) {
   if (!global._waitlistIndexPromise) {
     global._waitlistIndexPromise = (async () => {
       await collection.createIndex({ email: 1 }, { unique: true, name: "email_uq" });
-      await collection.createIndex({ createdAt: -1 }, { name: "created_desc" });
       await collection.createIndex(
         { verificationTokenHash: 1 },
         {
@@ -81,7 +68,19 @@ async function ensureWaitlistIndexes(collection: Collection<WaitlistDocument>) {
           sparse: true,
         },
       );
-      await collection.createIndex({ status: 1 }, { name: "status_idx" });
+
+      // Best-effort cleanup for legacy indexes that are no longer needed.
+      try {
+        await collection.dropIndex("created_desc");
+      } catch {
+        // noop
+      }
+
+      try {
+        await collection.dropIndex("status_idx");
+      } catch {
+        // noop
+      }
     })();
   }
 

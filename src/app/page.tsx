@@ -45,7 +45,7 @@ export default function Home() {
       <div className="ambient absolute inset-0 -z-10" aria-hidden="true" />
 
       <header className="border-b border-divider/90 bg-black/25 backdrop-blur-sm">
-        <div className="mx-auto flex h-[72px] w-full max-w-6xl items-center gap-6 px-4 sm:px-6">
+        <div className="mx-auto flex h-18 w-full max-w-6xl items-center gap-6 px-4 sm:px-6">
           <div className="flex items-center gap-3">
             <div className="grid h-9 w-9 place-content-center rounded-md bg-white text-black">
               <Image src="/logo.png" alt="OunceBook logo" width={36} height={36} />
