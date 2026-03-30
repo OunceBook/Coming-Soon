@@ -5,10 +5,9 @@ import { VerifyWaitlistClient } from "@/components/verify-waitlist-client";
 function VerifyFallback() {
   return (
     <section className="panel w-full p-6 sm:p-8">
-      <h1 className="text-2xl font-semibold text-ink sm:text-3xl">Verifying</h1>
-      <p className="mt-3 text-sm leading-relaxed text-secondary sm:text-base">
-        Checking your verification link...
-      </p>
+      <p className="text-xs tracking-[0.16em] text-secondary uppercase">Waitlist Verification</p>
+      <h1 className="mt-1 text-2xl font-semibold text-ink sm:text-3xl">Verifying Your Email</h1>
+      <p className="mt-3 text-sm leading-relaxed text-secondary sm:text-base">Checking your verification link...</p>
     </section>
   );
 }

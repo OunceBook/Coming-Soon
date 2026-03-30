@@ -2,7 +2,15 @@
 
 import Script from "next/script";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { AlertCircle, Info, Mail, Send, ShieldCheck } from "lucide-react";
+import {
+  AlertCircle,
+  Info,
+  Mail,
+  Send,
+  ShieldCheck,
+  Sparkles,
+  X,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -423,20 +431,45 @@ export function WaitlistForm() {
           aria-labelledby="captcha-modal-title"
         >
           <div className="panel w-full max-w-md p-5 sm:p-6">
-            <h3 id="captcha-modal-title" className="text-lg font-semibold text-ink">
-              Verify you are human
-            </h3>
-            <p className="mt-2 text-sm text-secondary">
-              Complete the captcha to finish your waitlist submission.
-            </p>
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <span className="grid h-10 w-10 place-content-center rounded-full border border-divider bg-white/[0.04]">
+                  <ShieldCheck className="h-5 w-5 text-ink" aria-hidden="true" />
+                </span>
+                <div>
+                  <h3 id="captcha-modal-title" className="text-lg font-semibold text-ink">
+                    Human Check
+                  </h3>
+                  <p className="text-xs text-secondary">Security step before submission</p>
+                </div>
+              </div>
+
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={closeCaptchaModal}
+                aria-label="Close captcha modal"
+                className="h-8 w-8 rounded-md p-0"
+              >
+                <X className="h-4 w-4" aria-hidden="true" />
+              </Button>
+            </div>
 
             <div className="mt-4 rounded-lg border border-divider bg-white/[0.03] p-3">
+              <p className="mb-3 text-sm text-secondary">
+                Complete the captcha to submit your waitlist request.
+              </p>
               <div ref={captchaContainerRef} />
+            </div>
+
+            <div className="mt-4 rounded-lg border border-divider bg-white/[0.02] px-3 py-2 text-xs text-secondary">
+              This modal closes automatically after successful verification.
             </div>
 
             <div className="mt-4 flex justify-end">
               <Button type="button" variant="outline" size="sm" onClick={closeCaptchaModal}>
-                Cancel
+                Cancel Verification
               </Button>
             </div>
           </div>
@@ -451,24 +484,61 @@ export function WaitlistForm() {
           aria-labelledby="status-modal-title"
         >
           <div className="panel w-full max-w-lg p-5 sm:p-6">
-            <div className="flex items-start gap-3">
-              {statusModal.tone === "success" ? (
-                <ShieldCheck className="mt-0.5 h-5 w-5 text-ink" aria-hidden="true" />
-              ) : statusModal.tone === "error" ? (
-                <AlertCircle className="mt-0.5 h-5 w-5 text-ink" aria-hidden="true" />
-              ) : (
-                <Info className="mt-0.5 h-5 w-5 text-ink" aria-hidden="true" />
-              )}
-              <div>
-                <h3 id="status-modal-title" className="text-lg font-semibold text-ink">
-                  {statusModal.title}
-                </h3>
-                <div className="mt-2 space-y-2 text-sm leading-relaxed text-secondary">
-                  {statusModal.lines.map((line) => (
-                    <p key={line}>{line}</p>
-                  ))}
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex items-start gap-3">
+                <span className="mt-0.5 grid h-10 w-10 place-content-center rounded-full border border-divider bg-white/[0.04]">
+                  {statusModal.tone === "success" ? (
+                    <ShieldCheck className="h-5 w-5 text-ink" aria-hidden="true" />
+                  ) : statusModal.tone === "error" ? (
+                    <AlertCircle className="h-5 w-5 text-ink" aria-hidden="true" />
+                  ) : (
+                    <Info className="h-5 w-5 text-ink" aria-hidden="true" />
+                  )}
+                </span>
+
+                <div>
+                  <p className="text-xs tracking-[0.16em] text-secondary uppercase">
+                    Waitlist Update
+                  </p>
+                  <h3 id="status-modal-title" className="mt-1 text-lg font-semibold text-ink">
+                    {statusModal.title}
+                  </h3>
                 </div>
               </div>
+
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  setStatusModal((previous) => ({
+                    ...previous,
+                    open: false,
+                  }))
+                }
+                aria-label="Close status modal"
+                className="h-8 w-8 rounded-md p-0"
+              >
+                <X className="h-4 w-4" aria-hidden="true" />
+              </Button>
+            </div>
+
+            <div className="mt-4 rounded-lg border border-divider bg-white/[0.02] p-4">
+              <ul className="space-y-2 text-sm leading-relaxed text-secondary">
+                {statusModal.lines.map((line) => (
+                  <li key={line} className="flex items-start gap-2">
+                    <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-ink/80" aria-hidden="true" />
+                    <span>{line}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="mt-4 flex items-center justify-between gap-3 rounded-lg border border-divider bg-white/[0.02] px-3 py-2 text-xs text-secondary">
+              <span>Need help?</span>
+              <a className="link-soft" href="mailto:hello@ouncebook.com">
+                hello@ouncebook.com
+              </a>
             </div>
 
             <div className="mt-6 flex justify-end">
