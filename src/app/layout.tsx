@@ -14,6 +14,7 @@ const manrope = Manrope({
 });
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://ouncebook.com";
+const socialImagePath = "/screenshot-ouncebook.png";
 
 const metadataBase = (() => {
   try {
@@ -24,21 +25,56 @@ const metadataBase = (() => {
 })();
 
 export const metadata: Metadata = {
+  applicationName: "OunceBook",
   metadataBase,
-  title: "OunceBook | Coming Soon",
+  title: {
+    default: "OunceBook | Coming Soon",
+    template: "%s | OunceBook",
+  },
   description:
     "OunceBook is building a more intentional text network. Join the waitlist for first access.",
+  keywords: [
+    "OunceBook",
+    "coming soon",
+    "waitlist",
+    "text social network",
+    "early access",
+  ],
+  alternates: {
+    canonical: "/",
+  },
   openGraph: {
     title: "OunceBook | Coming Soon",
-    description: "an Ounce of words in a pound of noise",
+    description: "an ounce of thought in a pound of noise",
     url: siteUrl,
     type: "website",
     siteName: "OunceBook",
+    locale: "en_US",
+    images: [
+      {
+        url: socialImagePath,
+        width: 1918,
+        height: 942,
+        alt: "OunceBook coming soon page preview",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "OunceBook | Coming Soon",
-    description: "an Ounce of words in a pound of noise",
+    description: "an ounce of thought in a pound of noise",
+    images: [socialImagePath],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
   },
 };
 

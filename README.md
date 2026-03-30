@@ -1,6 +1,6 @@
 # OunceBook
 
-An ounce of words in a pound of noise
+An ounce of thought in a pound of noise
 
 The internet got louder. OunceBook is building a text-first social network for people who still care about signal.
 

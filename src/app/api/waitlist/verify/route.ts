@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 import { getWaitlistCollection } from "@/lib/mongodb";
+import { sendWaitlistWelcomeEmail } from "@/lib/smtp";
 
 export const runtime = "nodejs";
 
@@ -41,9 +42,24 @@ export async function POST(request: NextRequest) {
     const collection = await getWaitlistCollection();
     const tokenHash = hashVerificationToken(parsed.data.token);
 
+    const entry = await collection.findOne({
+      verificationTokenHash: tokenHash,
+      status: "pending",
+    });
+
+    if (!entry) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Verification link is invalid or expired.",
+        },
+        { status: 400 },
+      );
+    }
+
     const result = await collection.updateOne(
       {
-        verificationTokenHash: tokenHash,
+        _id: entry._id,
         status: "pending",
       },
       {
@@ -63,6 +79,16 @@ export async function POST(request: NextRequest) {
         },
         { status: 400 },
       );
+    }
+
+    if (entry.email) {
+      try {
+        await sendWaitlistWelcomeEmail({
+          to: entry.email,
+        });
+      } catch (emailError) {
+        console.error("Welcome email send failed", emailError);
+      }
     }
 
     return NextResponse.json({

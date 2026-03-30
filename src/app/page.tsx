@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -7,6 +8,36 @@ import {
 } from "lucide-react";
 
 import { WaitlistForm } from "@/components/waitlist-form";
+
+export const metadata: Metadata = {
+  title: "Coming Soon",
+  description:
+    "OunceBook is launching soon. Join the waitlist for early access to a more intentional text-first network.",
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    title: "OunceBook | Coming Soon",
+    description:
+      "Join the OunceBook waitlist for early access to a text-first network built for signal over noise.",
+    url: "/",
+    images: [
+      {
+        url: "/screenshot-ouncebook.png",
+        width: 1918,
+        height: 942,
+        alt: "OunceBook coming soon page preview",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "OunceBook | Coming Soon",
+    description:
+      "Join the OunceBook waitlist for early access to a text-first network built for signal over noise.",
+    images: ["/screenshot-ouncebook.png"],
+  },
+};
 
 export default function Home() {
   return (
@@ -28,7 +59,7 @@ export default function Home() {
             </p>
 
             <a
-              className="rounded-lg border border-divider bg-white/[0.03] px-3 py-2 text-xs font-semibold text-ink transition-colors hover:bg-white/[0.08]"
+              className="rounded-lg border border-divider bg-white/3 px-3 py-2 text-xs font-semibold text-ink transition-colors hover:bg-white/8"
               href="#waitlist"
             >
               Join Waitlist
@@ -43,7 +74,7 @@ export default function Home() {
           OunceBook is launching soon.
         </h1>
         <p className="mt-4 max-w-3xl text-base leading-relaxed text-secondary sm:text-lg">
-          An ounce of words in a pound of noise. A text-first network designed
+          An ounce of thought in a pound of noise. A text-first network designed
           for intentional expression, not endless distraction.
         </p>
 
@@ -65,7 +96,7 @@ export default function Home() {
               before public rollout.
             </p>
           </div>
-          <div className="rounded-xl border border-divider bg-white/[0.03] p-4 sm:p-5">
+          <div className="rounded-xl border border-divider bg-white/3 p-4 sm:p-5">
             <WaitlistForm />
           </div>
         </div>

@@ -1,8 +1,31 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 
-export const metadata = {
-  title: "Privacy Policy | OunceBook",
+export const metadata: Metadata = {
+  title: "Privacy Policy",
   description: "Privacy notice for the OunceBook waitlist.",
+  alternates: {
+    canonical: "/privacy",
+  },
+  openGraph: {
+    title: "Privacy Policy | OunceBook",
+    description: "Privacy notice for the OunceBook waitlist.",
+    url: "/privacy",
+    images: [
+      {
+        url: "/screenshot-ouncebook.png",
+        width: 1918,
+        height: 942,
+        alt: "OunceBook coming soon page preview",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Privacy Policy | OunceBook",
+    description: "Privacy notice for the OunceBook waitlist.",
+    images: ["/screenshot-ouncebook.png"],
+  },
 };
 
 export default function PrivacyPage() {

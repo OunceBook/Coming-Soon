@@ -1,6 +1,38 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 
 import { VerifyWaitlistClient } from "@/components/verify-waitlist-client";
+
+export const metadata: Metadata = {
+  title: "Verify Email",
+  description: "Verify your email to complete your OunceBook waitlist signup.",
+  alternates: {
+    canonical: "/verify",
+  },
+  robots: {
+    index: false,
+    follow: false,
+  },
+  openGraph: {
+    title: "Verify Email | OunceBook",
+    description: "Verify your email to complete your OunceBook waitlist signup.",
+    url: "/verify",
+    images: [
+      {
+        url: "/screenshot-ouncebook.png",
+        width: 1918,
+        height: 942,
+        alt: "OunceBook coming soon page preview",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Verify Email | OunceBook",
+    description: "Verify your email to complete your OunceBook waitlist signup.",
+    images: ["/screenshot-ouncebook.png"],
+  },
+};
 
 function VerifyFallback() {
   return (
