@@ -34,6 +34,7 @@ type ApiResponse = {
   retryAfterSeconds?: number;
   alreadyRegistered?: boolean;
   verificationRequired?: boolean;
+  invitesRecorded?: number;
 };
 
 type TurnstileWidgetId = string | number;
@@ -81,6 +82,18 @@ function formatWaitTime(totalSeconds: number) {
   return `${minutes}m ${seconds}s`;
 }
 
+function describeInvites(count: number | undefined, sent: boolean) {
+  if (!count) {
+    return "";
+  }
+
+  const people = count === 1 ? "1 person" : `${count} people`;
+
+  return sent
+    ? `We let ${people} know you would bring them.`
+    : `We saved ${people} to bring with you — we will let them know once you verify.`;
+}
+
 function toStatusModal(data: ApiResponse, responseOk: boolean): StatusModalState {
   const wait = data.retryAfterSeconds
     ? formatWaitTime(data.retryAfterSeconds)
@@ -94,6 +107,7 @@ function toStatusModal(data: ApiResponse, responseOk: boolean): StatusModalState
       lines: [
         "We sent a verification link to your inbox.",
         "Open the email and click verify to secure your waitlist spot.",
+        describeInvites(data.invitesRecorded, false),
         wait ? `You can request a new verification email in about ${wait}.` : "",
       ].filter(Boolean),
     };
@@ -107,6 +121,7 @@ function toStatusModal(data: ApiResponse, responseOk: boolean): StatusModalState
       lines: [
         "A new verification link has been sent.",
         "Use the latest email in your inbox.",
+        describeInvites(data.invitesRecorded, false),
         wait ? `You can request another resend in about ${wait}.` : "",
       ].filter(Boolean),
     };
@@ -120,6 +135,7 @@ function toStatusModal(data: ApiResponse, responseOk: boolean): StatusModalState
       lines: [
         "This email is already registered and waiting for verification.",
         "Please check your inbox (or spam folder) for the verification link.",
+        describeInvites(data.invitesRecorded, false),
         wait ? `You can request a resend in about ${wait}.` : "",
       ].filter(Boolean),
     };
@@ -132,7 +148,7 @@ function toStatusModal(data: ApiResponse, responseOk: boolean): StatusModalState
       title: "Already on the waitlist",
       lines: [
         "This email is already verified and in the queue.",
-        "No further action is required.",
+        describeInvites(data.invitesRecorded, true) || "No further action is required.",
       ],
     };
   }

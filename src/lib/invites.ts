@@ -6,6 +6,7 @@ import {
   getWaitlistCollection,
 } from "@/lib/mongodb";
 import { sendInvitationEmail, sendNamedYouEmail } from "@/lib/smtp";
+import { parseInviteeEmails } from "@/lib/validation";
 
 const SITE_URL = (
   process.env.NEXT_PUBLIC_SITE_URL ?? "https://ouncebook.com"
@@ -43,6 +44,58 @@ export function buildUnsubscribeUrl(email: string) {
   });
 
   return `${SITE_URL}/api/invites/unsubscribe?${params.toString()}`;
+}
+
+/**
+ * Stores the people someone said they would bring.
+ *
+ * Deliberately independent of the waitlist row's state: someone already on the
+ * list — verified or waiting — must still be able to name people, and they are
+ * the likeliest to do it. Returns how many pairs are now on record for them.
+ *
+ * Never throws. A failure here must not cost someone their own signup.
+ */
+export async function recordInvitations(inviterEmail: string, rawList?: string) {
+  if (!rawList) {
+    return 0;
+  }
+
+  const inviter = inviterEmail.toLowerCase();
+  const { emails } = parseInviteeEmails(rawList, inviter);
+
+  if (!emails.length) {
+    return 0;
+  }
+
+  try {
+    const invitations = await getInvitationCollection();
+    const now = new Date();
+
+    await invitations.bulkWrite(
+      emails.map((inviteeEmail) => ({
+        updateOne: {
+          filter: { inviterEmail: inviter, inviteeEmail },
+          update: {
+            $setOnInsert: {
+              inviterEmail: inviter,
+              inviteeEmail,
+              createdAt: now,
+              status: "pending" as const,
+              notifiedAt: null,
+              mutual: false,
+            },
+          },
+          upsert: true,
+        },
+      })),
+      { ordered: false },
+    );
+
+    return emails.length;
+  } catch (error) {
+    console.error("Recording invitations failed", { inviter }, error);
+    return 0;
+  }
 }
 
 /**

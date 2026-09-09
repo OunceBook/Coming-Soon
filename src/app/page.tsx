@@ -65,11 +65,11 @@ export default function Home() {
       </header>
 
       <section className="mx-auto w-full max-w-6xl px-4 pt-16 pb-10 sm:px-6 lg:pt-24">
-        <p className="tracking-caps text-xs text-secondary">Early Access</p>
-        <h1 className="mt-4 max-w-4xl text-4xl font-semibold leading-tight text-ink sm:text-6xl">
+        <p className="eyebrow tracking-caps text-xs">Early Access</p>
+        <h1 className="font-display mt-5 max-w-4xl text-[2.6rem] leading-[1.06] font-normal text-balance text-ink sm:text-7xl">
           A social network with no feed.
         </h1>
-        <p className="mt-4 max-w-3xl text-base leading-relaxed text-secondary sm:text-lg">
+        <p className="mt-6 max-w-2xl text-base leading-relaxed text-secondary sm:text-lg">
           An ounce of thought in a pound of noise. An AI reads what your friends
           wrote and catches you up on the few things worth knowing — the way a
           friend would. No scrolling. No ranking. No infinite anything.
@@ -83,9 +83,9 @@ export default function Home() {
       </section>
 
       <section className="mx-auto w-full max-w-6xl px-4 pb-16 sm:px-6">
-        <div className="panel overflow-hidden">
+        <div className="panel overflow-hidden bg-paper-soft/70">
           <div className="flex flex-wrap items-baseline justify-between gap-3 border-b border-divider px-5 py-4 sm:px-7">
-            <p className="tracking-caps text-xs text-secondary">
+            <p className="eyebrow tracking-caps text-xs">
               Tuesday · your catch-up
             </p>
             <p className="text-xs text-secondary tabular-nums">
@@ -131,7 +131,7 @@ export default function Home() {
       <section className="mx-auto w-full max-w-6xl px-4 pb-24 sm:px-6" id="waitlist">
         <div className="panel grid gap-8 p-6 sm:p-8 lg:grid-cols-[1fr_1.15fr] lg:items-center">
           <div>
-            <h2 className="text-2xl font-semibold text-ink sm:text-3xl">
+            <h2 className="font-display text-[1.7rem] leading-tight font-normal text-balance text-ink sm:text-4xl">
               Reserve your place in the first wave
             </h2>
             <p className="mt-3 text-sm leading-relaxed text-secondary sm:text-base">
@@ -149,7 +149,7 @@ export default function Home() {
         <div className="mt-8 grid gap-4 md:grid-cols-3">
           <article className="panel p-5">
             <p className="mb-2 flex items-center gap-2 text-sm font-semibold text-ink">
-              <BookOpen className="h-4 w-4" aria-hidden="true" />
+              <BookOpen className="h-4 w-4 text-accent" aria-hidden="true" />
               The AI does the reading
             </p>
             <p className="text-sm leading-relaxed text-secondary">
@@ -161,7 +161,7 @@ export default function Home() {
 
           <article className="panel p-5">
             <p className="mb-2 flex items-center gap-2 text-sm font-semibold text-ink">
-              <Hourglass className="h-4 w-4" aria-hidden="true" />
+              <Hourglass className="h-4 w-4 text-accent" aria-hidden="true" />
               Attention that means something
             </p>
             <p className="text-sm leading-relaxed text-secondary">
@@ -173,7 +173,7 @@ export default function Home() {
 
           <article className="panel p-5">
             <p className="mb-2 flex items-center gap-2 text-sm font-semibold text-ink">
-              <Users className="h-4 w-4" aria-hidden="true" />
+              <Users className="h-4 w-4 text-accent" aria-hidden="true" />
               People you actually know
             </p>
             <p className="text-sm leading-relaxed text-secondary">

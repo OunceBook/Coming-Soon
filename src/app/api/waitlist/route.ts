@@ -4,10 +4,13 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { verifyTurnstileToken } from "@/lib/captcha";
 import { isDisposableEmail } from "@/lib/disposable-email";
-import { getInvitationCollection, getWaitlistCollection } from "@/lib/mongodb";
+import { waitUntil } from "@vercel/functions";
+
+import { getWaitlistCollection } from "@/lib/mongodb";
+import { dispatchInvitationsFor, recordInvitations } from "@/lib/invites";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { sendWaitlistVerificationEmail } from "@/lib/smtp";
-import { parseInviteeEmails, waitlistPayloadSchema } from "@/lib/validation";
+import { waitlistPayloadSchema } from "@/lib/validation";
 
 export const runtime = "nodejs";
 
@@ -154,14 +157,33 @@ export async function POST(request: NextRequest) {
     const collection = await getWaitlistCollection();
     const existing = await collection.findOne({ email: parsed.data.email });
 
+    // Record the invite list before any early return below. Someone already on
+    // the waitlist is among the likeliest to name people, and dropping their
+    // list because their own row already exists was the original bug here.
+    const invitesRecorded = await recordInvitations(
+      parsed.data.email,
+      parsed.data.bringing,
+    );
+
     if (existing?.status === "verified" || existing?.verifiedAt) {
+      // This address is already proven, so there is no verification step left
+      // to hang the dispatch on — send now.
+      if (invitesRecorded) {
+        // Runs past the response rather than holding it open; a timeout here
+        // would strand invitations with no second verification to retry them.
+        waitUntil(dispatchInvitationsFor(parsed.data.email));
+      }
+
       return NextResponse.json({
         success: true,
         status: "already_verified",
-        message: "This email is already verified on the waitlist.",
+        message: invitesRecorded
+          ? "You are already on the waitlist. We are letting the people you named know."
+          : "This email is already verified on the waitlist.",
         verificationRequired: false,
         alreadyRegistered: true,
         canResend: false,
+        invitesRecorded,
       });
     }
 
@@ -180,6 +202,7 @@ export async function POST(request: NextRequest) {
         alreadyRegistered: true,
         canResend: false,
         retryAfterSeconds: secondsUntil(nextAllowedAt),
+        invitesRecorded,
       });
     }
 
@@ -212,42 +235,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Record who they would bring, but send nothing yet. Invitations go out
-    // only after this person verifies their own address (see the verify route),
-    // so an unverified submission can never cause mail to a third party.
-    if (parsed.data.bringing) {
-      const { emails } = parseInviteeEmails(parsed.data.bringing, parsed.data.email);
-
-      if (emails.length) {
-        try {
-          const invitations = await getInvitationCollection();
-
-          await invitations.bulkWrite(
-            emails.map((inviteeEmail) => ({
-              updateOne: {
-                filter: { inviterEmail: parsed.data.email, inviteeEmail },
-                update: {
-                  $setOnInsert: {
-                    inviterEmail: parsed.data.email,
-                    inviteeEmail,
-                    createdAt: now,
-                    status: "pending" as const,
-                    notifiedAt: null,
-                    mutual: false,
-                  },
-                },
-                upsert: true,
-              },
-            })),
-            { ordered: false },
-          );
-        } catch (invitationError) {
-          // Never fail someone's own signup because their invite list did not save.
-          console.error("Recording invitations failed", invitationError);
-        }
-      }
-    }
-
     await sendWaitlistVerificationEmail({
       to: parsed.data.email,
       verificationUrl,
@@ -261,6 +248,7 @@ export async function POST(request: NextRequest) {
       alreadyRegistered: wasExisting,
       canResend: false,
       retryAfterSeconds: Math.ceil(RESEND_COOLDOWN_MS / 1000),
+      invitesRecorded,
     });
   } catch (error) {
     console.error("Waitlist signup failed", error);

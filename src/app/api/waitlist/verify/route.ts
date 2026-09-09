@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 
+import { waitUntil } from "@vercel/functions";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -92,8 +93,9 @@ export async function POST(request: NextRequest) {
       }
 
       // Now that this address is proven, it is safe to contact the people they
-      // named. Errors are handled inside and never surface to the verifier.
-      await dispatchInvitationsFor(entry.email);
+      // named. Runs past the response so a slow mailbox cannot time the
+      // verification out; errors are handled inside and never surface here.
+      waitUntil(dispatchInvitationsFor(entry.email));
     }
 
     return NextResponse.json({
