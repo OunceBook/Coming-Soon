@@ -105,7 +105,12 @@ async function ensureWaitlistIndexes(collection: Collection<WaitlistDocument>) {
       } catch {
         // noop
       }
-    })();
+    })().catch((error) => {
+      // Never memoize a failure: a cached rejected promise would make
+      // every later call fail for the life of the process.
+      global._waitlistIndexPromise = undefined;
+      throw error;
+    });
   }
 
   await global._waitlistIndexPromise;
@@ -124,7 +129,12 @@ async function ensureInvitationIndexes(collection: Collection<InvitationDocument
         { inviterEmail: 1, status: 1 },
         { name: "inviter_status_lookup" },
       );
-    })();
+    })().catch((error) => {
+      // Never memoize a failure: a cached rejected promise would make
+      // every later call fail for the life of the process.
+      global._invitationIndexPromise = undefined;
+      throw error;
+    });
   }
 
   await global._invitationIndexPromise;
@@ -134,7 +144,12 @@ async function ensureSuppressionIndexes(collection: Collection<SuppressionDocume
   if (!global._suppressionIndexPromise) {
     global._suppressionIndexPromise = (async () => {
       await collection.createIndex({ email: 1 }, { unique: true, name: "suppression_email_uq" });
-    })();
+    })().catch((error) => {
+      // Never memoize a failure: a cached rejected promise would make
+      // every later call fail for the life of the process.
+      global._suppressionIndexPromise = undefined;
+      throw error;
+    });
   }
 
   await global._suppressionIndexPromise;
