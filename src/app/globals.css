@@ -1,15 +1,18 @@
 @import "tailwindcss";
 
 :root {
-  --paper: #000000;
-  --paper-soft: #000000;
-  --ink: #ffffff;
-  --secondary: rgba(255, 255, 255, 0.7);
-  --divider: rgba(255, 255, 255, 0.16);
-  --accent: #ffffff;
-  --accent-strong: rgba(255, 255, 255, 0.82);
-  --success: #ffffff;
-  --danger: #ffffff;
+  /* Warm near-black rather than #000: pure black on pure white is harsh and
+     reads as unconsidered. Everything here carries a slight warm bias so the
+     page feels like paper under low light. */
+  --paper: #0A0908;
+  --paper-soft: #12100E;
+  --ink: #F4F0E8;
+  --secondary: rgba(244, 240, 232, 0.6);
+  --divider: rgba(244, 240, 232, 0.12);
+  --accent: #C99A4E;
+  --accent-strong: #DDB877;
+  --success: #9BBF8A;
+  --danger: #D98C7A;
 }
 
 @theme inline {
@@ -31,8 +34,12 @@ body {
   min-height: 100%;
 }
 
+/* Fraunces was loaded but unused. A serif does the arguing for a text-first
+   network far better than another geometric sans. */
 .font-display {
-  font-family: var(--font-manrope), "Segoe UI", sans-serif;
+  font-family: var(--font-fraunces), Georgia, "Times New Roman", serif;
+  font-optical-sizing: auto;
+  letter-spacing: -0.015em;
 }
 
 /* The narrator's voice. Serif marks it as writing rather than interface. */
@@ -43,20 +50,38 @@ body {
 
 /* Non-interactive preview of the actions the catch-up offers. */
 .affordance {
-  border: 1px solid rgba(255, 255, 255, 0.22);
+  border: 1px solid rgba(244, 240, 232, 0.2);
   border-radius: 999px;
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(244, 240, 232, 0.88);
   font-size: 0.8125rem;
   font-weight: 500;
   padding: 0.35rem 0.8rem;
 }
 
+.eyebrow {
+  color: var(--accent);
+}
+
+
 .font-ui {
   font-family: var(--font-manrope), "Segoe UI", sans-serif;
 }
 
+/* Was a flat black rectangle despite the name. A single low-contrast wash
+   gives the page depth without becoming a gradient hero. */
 .ambient {
-  background: #000000;
+  background:
+    radial-gradient(
+      70rem 40rem at 12% -8%,
+      rgba(201, 154, 78, 0.09),
+      transparent 62%
+    ),
+    radial-gradient(
+      50rem 34rem at 92% 4%,
+      rgba(244, 240, 232, 0.045),
+      transparent 60%
+    ),
+    var(--paper);
 }
 
 .tracking-caps {
@@ -65,10 +90,10 @@ body {
 }
 
 .chip {
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(244, 240, 232, 0.16);
+  background: rgba(244, 240, 232, 0.045);
   border-radius: 999px;
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(244, 240, 232, 0.86);
   font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.04em;
@@ -85,8 +110,8 @@ body {
 }
 
 .panel {
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(244, 240, 232, 0.11);
+  background: rgba(244, 240, 232, 0.022);
   border-radius: 1rem;
 }
 
