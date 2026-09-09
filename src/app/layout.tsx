@@ -32,11 +32,13 @@ export const metadata: Metadata = {
     template: "%s | OunceBook",
   },
   description:
-    "OunceBook is building a more intentional text network. Join the waitlist for first access.",
+    "A social network with no feed. An AI reads what your friends wrote and catches you up. Join the waitlist for first access.",
   keywords: [
     "OunceBook",
     "coming soon",
     "waitlist",
+    "AI social network",
+    "no feed",
     "text social network",
     "early access",
   ],
@@ -44,8 +46,9 @@ export const metadata: Metadata = {
     canonical: "/",
   },
   openGraph: {
-    title: "OunceBook | Coming Soon",
-    description: "an ounce of thought in a pound of noise",
+    title: "OunceBook | A social network with no feed",
+    description:
+      "An AI reads what your friends wrote and catches you up. An ounce of thought in a pound of noise.",
     url: siteUrl,
     type: "website",
     siteName: "OunceBook",
@@ -61,8 +64,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "OunceBook | Coming Soon",
-    description: "an ounce of thought in a pound of noise",
+    title: "OunceBook | A social network with no feed",
+    description:
+      "An AI reads what your friends wrote and catches you up. An ounce of thought in a pound of noise.",
     images: [socialImagePath],
   },
   robots: {

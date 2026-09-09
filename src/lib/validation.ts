@@ -51,8 +51,38 @@ const optionalUtmText = z
     return normalized;
   });
 
+const BRINGING_MAX_LENGTH = 280;
+
+// Free text: names, handles, or just a number. Unicode is expected here, so we
+// normalize and cap rather than restrict the character set.
+const optionalBringingText = z
+  .string()
+  .optional()
+  .transform((value, ctx) => {
+    if (!value) {
+      return undefined;
+    }
+
+    const normalized = value.normalize("NFKC").replace(/\s+/g, " ").trim();
+
+    if (!normalized) {
+      return undefined;
+    }
+
+    if (normalized.length > BRINGING_MAX_LENGTH) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "That answer is too long.",
+      });
+      return z.NEVER;
+    }
+
+    return normalized;
+  });
+
 export const waitlistPayloadSchema = z.object({
   email: z.string().trim().email().transform((value) => value.toLowerCase()),
+  bringing: optionalBringingText,
   utmSource: optionalUtmText,
   utmMedium: optionalUtmText,
   utmCampaign: optionalUtmText,

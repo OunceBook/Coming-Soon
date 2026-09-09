@@ -195,6 +195,7 @@ export async function POST(request: NextRequest) {
         email: parsed.data.email,
         status: "pending",
         createdAt: now,
+        bringing: parsed.data.bringing ?? null,
         verificationTokenHash,
         verificationRequestedAt: now,
         verifiedAt: null,
@@ -207,6 +208,9 @@ export async function POST(request: NextRequest) {
             status: "pending",
             verificationTokenHash,
             verificationRequestedAt: now,
+            // Only overwrite when they actually answered, so a resend with the
+            // field left blank does not erase an earlier answer.
+            ...(parsed.data.bringing ? { bringing: parsed.data.bringing } : {}),
           },
         },
       );

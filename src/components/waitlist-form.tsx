@@ -203,6 +203,7 @@ export function WaitlistForm() {
   const captchaWidgetIdRef = useRef<TurnstileWidgetId | null>(null);
 
   const [email, setEmail] = useState("");
+  const [bringing, setBringing] = useState("");
   const [honeypot, setHoneypot] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [captchaModalOpen, setCaptchaModalOpen] = useState(false);
@@ -246,6 +247,7 @@ export function WaitlistForm() {
           },
           body: JSON.stringify({
             email,
+            bringing,
             honeypot,
             captchaToken,
           }),
@@ -256,6 +258,7 @@ export function WaitlistForm() {
 
         if (response.ok && data.success) {
           setEmail("");
+          setBringing("");
           setHoneypot("");
         }
       } catch {
@@ -269,7 +272,7 @@ export function WaitlistForm() {
         setSubmitting(false);
       }
     },
-    [email, honeypot],
+    [email, bringing, honeypot],
   );
 
   useEffect(() => {
@@ -388,6 +391,34 @@ export function WaitlistForm() {
             <Send className="mr-2 h-4 w-4" aria-hidden="true" />
             {submitting ? "Submitting..." : "Get Early Access"}
           </Button>
+        </div>
+
+        <div className="space-y-2">
+          <label
+            className="block text-sm font-medium text-ink"
+            htmlFor="bringing"
+          >
+            Who would you bring?{" "}
+            <span className="font-normal text-secondary">(optional)</span>
+          </label>
+          <Input
+            id="bringing"
+            name="bringing"
+            type="text"
+            maxLength={280}
+            autoComplete="off"
+            placeholder="Names, handles, or just how many people"
+            value={bringing}
+            onChange={(event) => setBringing(event.target.value)}
+            aria-describedby="bringing-help"
+          />
+          <p
+            id="bringing-help"
+            className="text-xs leading-relaxed text-secondary"
+          >
+            Names or handles are fine — so is just a number. We keep this
+            private and only use it to group invites.
+          </p>
         </div>
 
         <div className="hidden" aria-hidden="true">

@@ -5,6 +5,8 @@ type WaitlistDocument = {
   email: string;
   status: "pending" | "verified";
   createdAt: Date;
+  /** Free-text answer to "who would you bring?"; null when left blank. */
+  bringing?: string | null;
   verificationTokenHash: string | null;
   verificationRequestedAt: Date | null;
   verifiedAt: Date | null;
