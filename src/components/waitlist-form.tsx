@@ -401,23 +401,24 @@ export function WaitlistForm() {
             Who would you bring?{" "}
             <span className="font-normal text-secondary">(optional)</span>
           </label>
-          <Input
+          <textarea
             id="bringing"
             name="bringing"
-            type="text"
-            maxLength={280}
+            rows={2}
+            maxLength={500}
             autoComplete="off"
-            placeholder="Names, handles, or just how many people"
+            placeholder="friend@email.com, another@email.com"
             value={bringing}
             onChange={(event) => setBringing(event.target.value)}
             aria-describedby="bringing-help"
+            className="flex w-full rounded-lg border border-divider bg-transparent px-3 py-2 text-base text-ink placeholder:text-secondary focus-visible:border-white/40 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
           />
           <p
             id="bringing-help"
             className="text-xs leading-relaxed text-secondary"
           >
-            Names or handles are fine — so is just a number. We keep this
-            private and only use it to group invites.
+            Up to five email addresses. Once you confirm your own, we let each
+            of them know you would bring them — one email, never a reminder.
           </p>
         </div>
 

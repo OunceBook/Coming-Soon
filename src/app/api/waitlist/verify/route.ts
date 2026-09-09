@@ -5,6 +5,7 @@ import { z } from "zod";
 
 import { getWaitlistCollection } from "@/lib/mongodb";
 import { sendWaitlistWelcomeEmail } from "@/lib/smtp";
+import { dispatchInvitationsFor } from "@/lib/invites";
 
 export const runtime = "nodejs";
 
@@ -89,6 +90,10 @@ export async function POST(request: NextRequest) {
       } catch (emailError) {
         console.error("Welcome email send failed", emailError);
       }
+
+      // Now that this address is proven, it is safe to contact the people they
+      // named. Errors are handled inside and never surface to the verifier.
+      await dispatchInvitationsFor(entry.email);
     }
 
     return NextResponse.json({

@@ -136,8 +136,9 @@ export default function Home() {
             </h2>
             <p className="mt-3 text-sm leading-relaxed text-secondary sm:text-base">
               We open in small groups of people who already know each other — a
-              network like this only works if it&rsquo;s dense. Tell us who
-              you&rsquo;d bring and we&rsquo;ll bring you in together.
+              network like this only works if it&rsquo;s dense. Name the people
+              you&rsquo;d bring and we&rsquo;ll let them know, so you arrive
+              together rather than alone.
             </p>
           </div>
           <div className="rounded-xl border border-divider bg-white/3 p-4 sm:p-5">

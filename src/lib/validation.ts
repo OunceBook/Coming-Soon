@@ -51,11 +51,54 @@ const optionalUtmText = z
     return normalized;
   });
 
-const BRINGING_MAX_LENGTH = 280;
+const MAX_INVITEES = 5;
+const INVITE_INPUT_MAX_LENGTH = 500;
 
-// Free text: names, handles, or just a number. Unicode is expected here, so we
-// normalize and cap rather than restrict the character set.
-const optionalBringingText = z
+const emailPattern = z.string().email();
+
+/**
+ * "Who would you bring?" — accepts addresses separated by commas, newlines,
+ * semicolons or spaces. Invalid fragments are dropped rather than failing the
+ * whole signup: someone fumbling a friend's address should still get onto the
+ * waitlist themselves.
+ */
+export function parseInviteeEmails(raw: string, selfEmail?: string) {
+  const seen = new Set<string>();
+  const valid: string[] = [];
+  let rejected = 0;
+
+  for (const fragment of raw.split(/[\s,;]+/)) {
+    const candidate = fragment.trim().toLowerCase();
+
+    if (!candidate) {
+      continue;
+    }
+
+    if (!emailPattern.safeParse(candidate).success) {
+      rejected += 1;
+      continue;
+    }
+
+    // Naming yourself is a no-op, not an error.
+    if (selfEmail && candidate === selfEmail.toLowerCase()) {
+      continue;
+    }
+
+    if (seen.has(candidate)) {
+      continue;
+    }
+
+    seen.add(candidate);
+
+    if (valid.length < MAX_INVITEES) {
+      valid.push(candidate);
+    }
+  }
+
+  return { emails: valid, rejected, truncated: seen.size > MAX_INVITEES };
+}
+
+const optionalInviteeInput = z
   .string()
   .optional()
   .transform((value, ctx) => {
@@ -63,16 +106,16 @@ const optionalBringingText = z
       return undefined;
     }
 
-    const normalized = value.normalize("NFKC").replace(/\s+/g, " ").trim();
+    const normalized = value.normalize("NFKC").trim();
 
     if (!normalized) {
       return undefined;
     }
 
-    if (normalized.length > BRINGING_MAX_LENGTH) {
+    if (normalized.length > INVITE_INPUT_MAX_LENGTH) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "That answer is too long.",
+        message: "That list is too long.",
       });
       return z.NEVER;
     }
@@ -82,7 +125,7 @@ const optionalBringingText = z
 
 export const waitlistPayloadSchema = z.object({
   email: z.string().trim().email().transform((value) => value.toLowerCase()),
-  bringing: optionalBringingText,
+  bringing: optionalInviteeInput,
   utmSource: optionalUtmText,
   utmMedium: optionalUtmText,
   utmCampaign: optionalUtmText,
