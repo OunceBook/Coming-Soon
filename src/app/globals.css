@@ -1,28 +1,43 @@
 @import "tailwindcss";
 
 :root {
-  /* Warm near-black rather than #000: pure black on pure white is harsh and
-     reads as unconsidered. Everything here carries a slight warm bias so the
-     page feels like paper under low light. */
-  --paper: #0A0908;
-  --paper-soft: #12100E;
-  --ink: #F4F0E8;
-  --secondary: rgba(244, 240, 232, 0.6);
-  --divider: rgba(244, 240, 232, 0.12);
-  --accent: #C99A4E;
-  --accent-strong: #DDB877;
-  --success: #9BBF8A;
-  --danger: #D98C7A;
+  /* A cool night ground with warm parchment ink: the page reads as a lit room
+     after dark. The warmth only works because the ground is cool — amber on a
+     warm black goes muddy, amber on blue-black glows.
+     Colour also carries the argument here: the feed noise is cold and
+     desaturated, the catch-up is warm and lit. */
+  --paper: #0A0D14;
+  --paper-soft: #0F131C;
+  --paper-raise: #151B27;
+  --ink: #F2EDE3;
+  --secondary: rgba(242, 237, 227, 0.62);
+  --faint: rgba(242, 237, 227, 0.32);
+  --divider: rgba(242, 237, 227, 0.11);
+
+  /* Lamplight. Spent sparingly and only on what matters. */
+  --accent: #E9B872;
+  --accent-strong: #F5D3A0;
+  --accent-dim: rgba(233, 184, 114, 0.14);
+
+  /* The temperature of noise. */
+  --cold: #6E7F99;
+  --cold-dim: rgba(110, 127, 153, 0.16);
+
+  --success: #8FBF9F;
+  --danger: #E08C7C;
 }
 
 @theme inline {
   --color-paper: var(--paper);
   --color-paper-soft: var(--paper-soft);
+  --color-paper-raise: var(--paper-raise);
   --color-ink: var(--ink);
   --color-secondary: var(--secondary);
+  --color-faint: var(--faint);
   --color-divider: var(--divider);
   --color-accent: var(--accent);
   --color-accent-strong: var(--accent-strong);
+  --color-cold: var(--cold);
   --color-success: var(--success);
   --color-danger: var(--danger);
   --font-sans: var(--font-manrope);
@@ -34,53 +49,31 @@ body {
   min-height: 100%;
 }
 
-/* Fraunces was loaded but unused. A serif does the arguing for a text-first
-   network far better than another geometric sans. */
+/* Fraunces carries the headings. A serif argues for a text-first network far
+   better than another geometric sans, and it ties the headings to the
+   narrator's voice in the catch-up. */
 .font-display {
   font-family: var(--font-fraunces), Georgia, "Times New Roman", serif;
   font-optical-sizing: auto;
-  letter-spacing: -0.015em;
+  letter-spacing: -0.018em;
+  font-weight: 400;
 }
-
-/* The narrator's voice. Serif marks it as writing rather than interface. */
-.voice {
-  font-family: var(--font-fraunces), Georgia, "Times New Roman", serif;
-  font-optical-sizing: auto;
-}
-
-/* Non-interactive preview of the actions the catch-up offers. */
-.affordance {
-  border: 1px solid rgba(244, 240, 232, 0.2);
-  border-radius: 999px;
-  color: rgba(244, 240, 232, 0.88);
-  font-size: 0.8125rem;
-  font-weight: 500;
-  padding: 0.35rem 0.8rem;
-}
-
-.eyebrow {
-  color: var(--accent);
-}
-
 
 .font-ui {
   font-family: var(--font-manrope), "Segoe UI", sans-serif;
 }
 
-/* Was a flat black rectangle despite the name. A single low-contrast wash
-   gives the page depth without becoming a gradient hero. */
+/* The narrator's own voice, wherever it speaks. */
+.voice {
+  font-family: var(--font-fraunces), Georgia, "Times New Roman", serif;
+  font-optical-sizing: auto;
+}
+
+/* One warm source, one cool counterweight — a lamp in a dark room. */
 .ambient {
   background:
-    radial-gradient(
-      70rem 40rem at 12% -8%,
-      rgba(201, 154, 78, 0.09),
-      transparent 62%
-    ),
-    radial-gradient(
-      50rem 34rem at 92% 4%,
-      rgba(244, 240, 232, 0.045),
-      transparent 60%
-    ),
+    radial-gradient(64rem 38rem at 10% -8%, rgba(233, 184, 114, 0.1), transparent 60%),
+    radial-gradient(56rem 40rem at 96% 10%, rgba(110, 127, 153, 0.11), transparent 62%),
     var(--paper);
 }
 
@@ -89,20 +82,43 @@ body {
   text-transform: uppercase;
 }
 
+.eyebrow {
+  color: var(--accent);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
 .chip {
-  border: 1px solid rgba(244, 240, 232, 0.16);
-  background: rgba(244, 240, 232, 0.045);
+  border: 1px solid rgba(242, 237, 227, 0.16);
+  background: rgba(242, 237, 227, 0.045);
   border-radius: 999px;
-  color: rgba(244, 240, 232, 0.86);
+  color: rgba(242, 237, 227, 0.86);
   font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.04em;
   padding: 0.48rem 0.85rem;
 }
 
+.affordance {
+  border: 1px solid rgba(242, 237, 227, 0.2);
+  border-radius: 999px;
+  color: rgba(242, 237, 227, 0.88);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  padding: 0.35rem 0.8rem;
+  transition: border-color 200ms ease, color 200ms ease;
+}
+
+.affordance:hover {
+  border-color: rgba(233, 184, 114, 0.55);
+  color: var(--accent-strong);
+}
+
 .link-soft {
   color: var(--secondary);
-  transition: color 180ms ease, opacity 180ms ease;
+  transition: color 180ms ease;
 }
 
 .link-soft:hover {
@@ -110,64 +126,72 @@ body {
 }
 
 .panel {
-  border: 1px solid rgba(244, 240, 232, 0.11);
-  background: rgba(244, 240, 232, 0.022);
+  border: 1px solid rgba(242, 237, 227, 0.11);
+  background: rgba(242, 237, 227, 0.022);
   border-radius: 1rem;
 }
 
+/* The fragments in the noise wall. Deliberately unreadable-ish: this is what
+   a feed feels like, not what it says. */
+.shard {
+  color: rgba(110, 127, 153, 0.78);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  border: 1px solid rgba(110, 127, 153, 0.16);
+  background: rgba(110, 127, 153, 0.06);
+  border-radius: 0.6rem;
+  padding: 0.6rem 0.8rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@keyframes shard-drift {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(0, -50%, 0); }
+}
+
+.shard-column {
+  animation: shard-drift linear infinite;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shard-column {
+    animation: none;
+  }
+}
+
+.rule {
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    rgba(242, 237, 227, 0.16),
+    rgba(242, 237, 227, 0.02)
+  );
+}
+
+.step-index {
+  font-family: var(--font-fraunces), Georgia, serif;
+  color: var(--accent);
+  font-size: 0.95rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.removal {
+  color: var(--faint);
+  transition: color 300ms ease;
+}
+
+.stat-figure {
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+/* Existing form primitives keep working unchanged. */
 .nav-tab {
   border-bottom: 2px solid transparent;
-  color: rgba(255, 255, 255, 0.72);
+  color: rgba(242, 237, 227, 0.72);
   display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  height: 4.5rem;
-  padding: 0 0.25rem;
-  font-size: 0.98rem;
-  font-weight: 600;
-  transition: color 180ms ease, border-color 180ms ease;
-}
-
-.nav-tab:hover {
-  color: var(--ink);
-}
-
-.nav-tab-active {
-  color: var(--ink);
-  border-bottom-color: rgba(255, 255, 255, 0.78);
-}
-
-.progress-rail {
-  height: 0.45rem;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.1);
-  overflow: hidden;
-}
-
-.progress-fill {
-  height: 100%;
-  border-radius: 999px;
-  background: #ffffff;
-}
-
-.form-ring:focus-visible {
-  outline: 2px solid rgba(255, 255, 255, 0.55);
-  outline-offset: 1px;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .reveal {
-    animation: reveal-up 620ms cubic-bezier(0.34, 1.38, 0.64, 1) both;
-  }
-}
-
-@keyframes reveal-up {
-  from {
-    opacity: 0;
-    transform: translate3d(0, 14px, 0);
-  }
-  to {
-    opacity: 1;
-    transform: translate3d(0, 0, 0);
-  }
 }
