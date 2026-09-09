@@ -203,6 +203,7 @@ export function WaitlistForm() {
   const captchaWidgetIdRef = useRef<TurnstileWidgetId | null>(null);
 
   const [email, setEmail] = useState("");
+  const [bringing, setBringing] = useState("");
   const [honeypot, setHoneypot] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [captchaModalOpen, setCaptchaModalOpen] = useState(false);
@@ -246,6 +247,7 @@ export function WaitlistForm() {
           },
           body: JSON.stringify({
             email,
+            bringing,
             honeypot,
             captchaToken,
           }),
@@ -256,6 +258,7 @@ export function WaitlistForm() {
 
         if (response.ok && data.success) {
           setEmail("");
+          setBringing("");
           setHoneypot("");
         }
       } catch {
@@ -269,7 +272,7 @@ export function WaitlistForm() {
         setSubmitting(false);
       }
     },
-    [email, honeypot],
+    [email, bringing, honeypot],
   );
 
   useEffect(() => {
@@ -388,6 +391,35 @@ export function WaitlistForm() {
             <Send className="mr-2 h-4 w-4" aria-hidden="true" />
             {submitting ? "Submitting..." : "Get Early Access"}
           </Button>
+        </div>
+
+        <div className="space-y-2">
+          <label
+            className="block text-sm font-medium text-ink"
+            htmlFor="bringing"
+          >
+            Who would you bring?{" "}
+            <span className="font-normal text-secondary">(optional)</span>
+          </label>
+          <textarea
+            id="bringing"
+            name="bringing"
+            rows={2}
+            maxLength={500}
+            autoComplete="off"
+            placeholder="friend@email.com, another@email.com"
+            value={bringing}
+            onChange={(event) => setBringing(event.target.value)}
+            aria-describedby="bringing-help"
+            className="flex w-full rounded-lg border border-divider bg-transparent px-3 py-2 text-base text-ink placeholder:text-secondary focus-visible:border-white/40 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+          />
+          <p
+            id="bringing-help"
+            className="text-xs leading-relaxed text-secondary"
+          >
+            Up to five email addresses. Once you confirm your own, we let each
+            of them know you would bring them — one email, never a reminder.
+          </p>
         </div>
 
         <div className="hidden" aria-hidden="true">

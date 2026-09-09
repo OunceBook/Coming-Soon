@@ -12,6 +12,16 @@ declare global {
 
 const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://ouncebook.com").replace(/\/$/, "");
 
+/** Inviter addresses are user-supplied and land inside HTML — escape them. */
+function escapeHtml(value: string) {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 function buildEmailShell(args: {
   preheader: string;
   title: string;
@@ -188,6 +198,101 @@ export async function sendWaitlistWelcomeEmail(args: {
     replyTo: smtp.replyTo,
     subject: "You are on the OunceBook waitlist",
     text,
+    html,
+    headers: {
+      "List-Unsubscribe": `<mailto:hello@ouncebook.com?subject=Unsubscribe%20from%20waitlist%20emails>`,
+    },
+  });
+}
+
+/**
+ * Sent to someone who is not on the waitlist, after a verified member named
+ * them. One per pair, ever. The inviter's address is shown so the recipient can
+ * recognise who vouched for them.
+ */
+export async function sendInvitationEmail(args: {
+  to: string;
+  inviterEmail: string;
+  unsubscribeUrl: string;
+}) {
+  const smtp = getSmtpContext();
+  const inviter = escapeHtml(args.inviterEmail);
+
+  const html = buildEmailShell({
+    preheader: `${args.inviterEmail} wants to bring you to OunceBook.`,
+    title: "Someone wants to bring you with them",
+    summary: `${inviter} named you as someone they would bring to OunceBook.`,
+    body: [
+      "OunceBook is a social network with no feed. An AI reads what your friends wrote and catches you up on the few things worth knowing.",
+      "We open in small groups of people who already know each other, so if you join the waitlist you will be brought in at the same time as the person who named you.",
+      "If this is not something you want, ignore this email — we will not send another.",
+    ],
+    actionLabel: "Join the waitlist",
+    actionUrl: `${SITE_URL}/`,
+    footer: [
+      `You received this once because ${inviter} entered your address when joining the OunceBook waitlist.`,
+      `You are not subscribed to anything. <a href="${args.unsubscribeUrl}" style="color: #666666;">Never contact this address again</a>.`,
+    ],
+  });
+
+  await smtp.transport.sendMail({
+    from: smtp.from,
+    to: args.to,
+    replyTo: smtp.replyTo,
+    subject: `${args.inviterEmail} wants to bring you to OunceBook`,
+    html,
+    headers: {
+      "List-Unsubscribe": `<${args.unsubscribeUrl}>, <mailto:hello@ouncebook.com?subject=Unsubscribe>`,
+      "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+    },
+  });
+}
+
+/**
+ * Sent to someone already on the waitlist when another member names them.
+ * `mutual` means they named each other — the signal we actually want, since it
+ * is consented on both sides and forms the seed of a cluster.
+ */
+export async function sendNamedYouEmail(args: {
+  to: string;
+  inviterEmail: string;
+  mutual: boolean;
+}) {
+  const smtp = getSmtpContext();
+  const inviter = escapeHtml(args.inviterEmail);
+
+  const body = args.mutual
+    ? [
+        `You named each other. When we open your group, you and ${inviter} will be brought in together.`,
+        "Nothing else to do — we will email you both when it is your turn.",
+      ]
+    : [
+        `${inviter} named you as someone they would bring when we open their group.`,
+        "You are already on the waitlist, so there is nothing to do. We will let you know when your group opens.",
+      ];
+
+  const html = buildEmailShell({
+    preheader: args.mutual
+      ? "You both named each other."
+      : `${args.inviterEmail} named you.`,
+    title: args.mutual ? "You both named each other" : "Someone named you",
+    summary: args.mutual
+      ? `You and ${inviter} each said you would bring the other.`
+      : `${inviter} would bring you to OunceBook.`,
+    body,
+    footer: [
+      "You are receiving this because you are on the OunceBook waitlist.",
+      "Reply to this email if you would rather not hear about this again.",
+    ],
+  });
+
+  await smtp.transport.sendMail({
+    from: smtp.from,
+    to: args.to,
+    replyTo: smtp.replyTo,
+    subject: args.mutual
+      ? "You and someone else named each other"
+      : `${args.inviterEmail} named you on OunceBook`,
     html,
     headers: {
       "List-Unsubscribe": `<mailto:hello@ouncebook.com?subject=Unsubscribe%20from%20waitlist%20emails>`,

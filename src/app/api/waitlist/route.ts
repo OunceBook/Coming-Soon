@@ -4,10 +4,10 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { verifyTurnstileToken } from "@/lib/captcha";
 import { isDisposableEmail } from "@/lib/disposable-email";
-import { getWaitlistCollection } from "@/lib/mongodb";
+import { getInvitationCollection, getWaitlistCollection } from "@/lib/mongodb";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { sendWaitlistVerificationEmail } from "@/lib/smtp";
-import { waitlistPayloadSchema } from "@/lib/validation";
+import { parseInviteeEmails, waitlistPayloadSchema } from "@/lib/validation";
 
 export const runtime = "nodejs";
 
@@ -210,6 +210,42 @@ export async function POST(request: NextRequest) {
           },
         },
       );
+    }
+
+    // Record who they would bring, but send nothing yet. Invitations go out
+    // only after this person verifies their own address (see the verify route),
+    // so an unverified submission can never cause mail to a third party.
+    if (parsed.data.bringing) {
+      const { emails } = parseInviteeEmails(parsed.data.bringing, parsed.data.email);
+
+      if (emails.length) {
+        try {
+          const invitations = await getInvitationCollection();
+
+          await invitations.bulkWrite(
+            emails.map((inviteeEmail) => ({
+              updateOne: {
+                filter: { inviterEmail: parsed.data.email, inviteeEmail },
+                update: {
+                  $setOnInsert: {
+                    inviterEmail: parsed.data.email,
+                    inviteeEmail,
+                    createdAt: now,
+                    status: "pending" as const,
+                    notifiedAt: null,
+                    mutual: false,
+                  },
+                },
+                upsert: true,
+              },
+            })),
+            { ordered: false },
+          );
+        } catch (invitationError) {
+          // Never fail someone's own signup because their invite list did not save.
+          console.error("Recording invitations failed", invitationError);
+        }
+      }
     }
 
     await sendWaitlistVerificationEmail({
