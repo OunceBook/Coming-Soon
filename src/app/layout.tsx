@@ -93,6 +93,11 @@ export default function RootLayout({
       className={`${fraunces.variable} ${manrope.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col font-ui">
+        {/* Reveal animations start from opacity 0. Without JS they would never
+            resolve, so force the resting state when the script cannot run. */}
+        <noscript>
+          <style>{`[style*="opacity:0"],[style*="opacity: 0"]{opacity:1!important;transform:none!important}`}</style>
+        </noscript>
         {children}
         <Analytics />
       </body>

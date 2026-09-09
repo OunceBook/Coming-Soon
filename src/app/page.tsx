@@ -3,6 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { BookOpen, Hourglass, Users } from "lucide-react";
 
+import { Reveal, RevealLines } from "@/components/reveal";
 import { WaitlistForm } from "@/components/waitlist-form";
 
 export const metadata: Metadata = {
@@ -65,62 +66,69 @@ export default function Home() {
       </header>
 
       <section className="mx-auto w-full max-w-6xl px-4 pt-16 pb-10 sm:px-6 lg:pt-24">
-        <p className="eyebrow tracking-caps text-xs">Early Access</p>
-        <h1 className="font-display mt-5 max-w-4xl text-[2.6rem] leading-[1.06] font-normal text-balance text-ink sm:text-7xl">
-          A social network with no feed.
-        </h1>
-        <p className="mt-6 max-w-2xl text-base leading-relaxed text-secondary sm:text-lg">
-          An ounce of thought in a pound of noise. An AI reads what your friends
-          wrote and catches you up on the few things worth knowing — the way a
-          friend would. No scrolling. No ranking. No infinite anything.
-        </p>
-
-        <div className="mt-8 flex flex-wrap gap-2">
-          <span className="chip">No feed, ever</span>
-          <span className="chip">The AI reads for you</span>
-          <span className="chip">Finite attention</span>
-        </div>
+        <Reveal distance={6}>
+          <p className="eyebrow tracking-caps text-xs">Early Access</p>
+        </Reveal>
+        <Reveal delay={0.08}>
+          <h1 className="font-display mt-5 max-w-4xl text-[2.6rem] leading-[1.06] font-normal text-balance text-ink sm:text-7xl">
+            A social network with no feed.
+          </h1>
+        </Reveal>
+        <Reveal delay={0.2}>
+          <p className="mt-6 max-w-2xl text-base leading-relaxed text-secondary sm:text-lg">
+            An ounce of thought in a pound of noise. An AI reads what your
+            friends wrote and catches you up on the few things worth knowing —
+            the way a friend would. No scrolling. No ranking. No infinite
+            anything.
+          </p>
+        </Reveal>
+        <Reveal delay={0.3}>
+          <div className="mt-8 flex flex-wrap gap-2">
+            <span className="chip">No feed, ever</span>
+            <span className="chip">The AI reads for you</span>
+            <span className="chip">Finite attention</span>
+          </div>
+        </Reveal>
       </section>
 
       <section className="mx-auto w-full max-w-6xl px-4 pb-16 sm:px-6">
-        <div className="panel overflow-hidden bg-paper-soft/70">
-          <div className="flex flex-wrap items-baseline justify-between gap-3 border-b border-divider px-5 py-4 sm:px-7">
-            <p className="eyebrow tracking-caps text-xs">
-              Tuesday · your catch-up
-            </p>
-            <p className="text-xs text-secondary tabular-nums">
-              7 attends left · 250 words
-            </p>
-          </div>
+        <Reveal delay={0.4} distance={14}>
+          <div className="panel overflow-hidden bg-paper-soft/70">
+            <div className="flex flex-wrap items-baseline justify-between gap-3 border-b border-divider px-5 py-4 sm:px-7">
+              <p className="eyebrow tracking-caps text-xs">
+                Tuesday · your catch-up
+              </p>
+              <p className="text-xs text-secondary tabular-nums">
+                7 attends left · 250 words
+              </p>
+            </div>
 
-          <div className="voice space-y-4 px-5 py-7 text-lg leading-relaxed text-ink sm:px-7 sm:text-xl">
-            <p>Morning. Three things.</p>
-            <p>
-              Rafi left the agency on Friday — no next thing lined up. He sounded
-              more relieved than worried, though he mentioned rent twice.
-            </p>
-            <p>
-              Maya&rsquo;s back from Istanbul. She posted a photo of a bookshop
-              she wants to take you to.
-            </p>
-            <p>
-              Nadia asked, fairly quietly, whether anyone&rsquo;s around on
-              Sunday. Two people have said yes so far.
-            </p>
-            <p className="text-secondary italic">
-              That&rsquo;s everything. Nothing else needs your morning.
-            </p>
-          </div>
+            <RevealLines
+              className="voice space-y-4 px-5 py-7 text-lg leading-relaxed text-ink sm:px-7 sm:text-xl"
+              startDelay={0.62}
+              lines={[
+                "Morning. Three things.",
+                "Rafi left the agency on Friday — no next thing lined up. He sounded more relieved than worried, though he mentioned rent twice.",
+                "Maya\u2019s back from Istanbul. She posted a photo of a bookshop she wants to take you to.",
+                "Nadia asked, fairly quietly, whether anyone\u2019s around on Sunday. Two people have said yes so far.",
+                <span key="signoff" className="text-secondary italic">
+                  That&rsquo;s everything. Nothing else needs your morning.
+                </span>,
+              ]}
+            />
 
-          <div
-            className="flex flex-wrap gap-2 border-t border-divider px-5 py-4 sm:px-7"
-            aria-hidden="true"
-          >
-            <span className="affordance">Open Rafi&rsquo;s post</span>
-            <span className="affordance">Tell Nadia I&rsquo;m in</span>
-            <span className="affordance">Write something</span>
+            <Reveal delay={1.3} distance={6}>
+              <div
+                className="flex flex-wrap gap-2 border-t border-divider px-5 py-4 sm:px-7"
+                aria-hidden="true"
+              >
+                <span className="affordance">Open Rafi&rsquo;s post</span>
+                <span className="affordance">Tell Nadia I&rsquo;m in</span>
+                <span className="affordance">Write something</span>
+              </div>
+            </Reveal>
           </div>
-        </div>
+        </Reveal>
 
         <p className="mt-3 text-sm leading-relaxed text-secondary">
           A preview of your daily catch-up. Every sentence traces back to a real
